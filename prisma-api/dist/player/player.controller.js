@@ -22,7 +22,7 @@ let PlayerController = class PlayerController {
         this.playerService = playerService;
     }
     async login(request, response) {
-        const profile = await this.playerService.findPlayerById(request.user.id);
+        const profile = await this.playerService.findPlayerById(request.user.playerId);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -36,7 +36,7 @@ let PlayerController = class PlayerController {
         response.status(200).send(profile);
     }
     async isBlocked(login, request, response) {
-        const isFriend = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+        const isFriend = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
         if (isFriend && isFriend.status === "Block") {
             response.status(200).send(true);
         }
@@ -45,7 +45,7 @@ let PlayerController = class PlayerController {
         }
     }
     async checkStatusFriendship(login, request, response) {
-        const membership = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+        const membership = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
         let choices = [];
         if (!membership) {
             choices = ['addFriend'];
@@ -53,16 +53,16 @@ let PlayerController = class PlayerController {
         else if (membership && membership.status === "Friend") {
             choices = ['blockFriend'];
         }
-        else if (membership && membership.status === "Block" && membership.senderId === request.user.id) {
+        else if (membership && membership.status === "Block" && membership.senderId === request.user.playerId) {
             choices = ['unblockFriend'];
         }
-        else if (membership && membership.status === "Block" && membership.receiverId === request.user.id) {
+        else if (membership && membership.status === "Block" && membership.receiverId === request.user.playerId) {
             choices = ['YourBlocked'];
         }
-        else if (membership && membership.status === "Pending" && membership.senderId === request.user.id) {
+        else if (membership && membership.status === "Pending" && membership.senderId === request.user.playerId) {
             choices = ['pendingFriend'];
         }
-        else if (membership && membership.status === "Pending" && membership.receiverId === request.user.id) {
+        else if (membership && membership.status === "Pending" && membership.receiverId === request.user.playerId) {
             choices = ['acceptFriend', 'refuseFriend'];
         }
         else {
@@ -74,11 +74,11 @@ let PlayerController = class PlayerController {
         response.status(200).send(choices);
     }
     async RequestFriendship(login, request, response) {
-        const room = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+        const room = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
         if (room) {
             throw new common_1.UnauthorizedException("Already Exist");
         }
-        const friend = await this.playerService.createFriendship(request.user.id, login['id']);
+        const friend = await this.playerService.createFriendship(request.user.playerId, login['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -87,10 +87,10 @@ let PlayerController = class PlayerController {
         });
     }
     async AcceptFriendship(login, request, response) {
-        const friend = await this.playerService.acceptFriendship(request.user.id, login['id']);
-        const room = await this.playerService.getRoomBetweenTwoPlayers(request.user.id, login['id']);
+        const friend = await this.playerService.acceptFriendship(request.user.playerId, login['id']);
+        const room = await this.playerService.getRoomBetweenTwoPlayers(request.user.playerId, login['id']);
         if (room === null) {
-            await this.playerService.createDMRoom(request.user.id, login['id']);
+            await this.playerService.createDMRoom(request.user.playerId, login['id']);
         }
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
@@ -100,11 +100,11 @@ let PlayerController = class PlayerController {
         });
     }
     async RefuseFriendship(login, request, response) {
-        const room = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+        const room = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
         if (room === null) {
             throw new common_1.UnauthorizedException("There is no Request to refuse");
         }
-        const friend = await this.playerService.refuseFriendship(request.user.id, login['id']);
+        const friend = await this.playerService.refuseFriendship(request.user.playerId, login['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -113,7 +113,7 @@ let PlayerController = class PlayerController {
         });
     }
     async BlockFriendship(login, request, response) {
-        const friend = await this.playerService.blockFriendship(request.user.id, login['id']);
+        const friend = await this.playerService.blockFriendship(request.user.playerId, login['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -122,11 +122,11 @@ let PlayerController = class PlayerController {
         });
     }
     async UnblockFriendship(login, request, response) {
-        const room = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+        const room = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
         if (room === null) {
             throw new common_1.UnauthorizedException("There is no friendship to Unblock");
         }
-        const friend = await this.playerService.deleteFriendship(request.user.id, login['id']);
+        const friend = await this.playerService.deleteFriendship(request.user.playerId, login['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -135,7 +135,7 @@ let PlayerController = class PlayerController {
         });
     }
     async GetListOfFriends(request, response) {
-        const friends = await this.playerService.getAllFriends(request.user.id);
+        const friends = await this.playerService.getAllFriends(request.user.playerId);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -147,11 +147,11 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permision = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permision = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permision === null) {
             throw new common_1.NotFoundException("You are not in this room");
         }
-        const friends = await this.playerService.getProfilesOfChatRooms(request.user.id, id_room['id']);
+        const friends = await this.playerService.getProfilesOfChatRooms(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -162,11 +162,11 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permision = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permision = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permision === null) {
             throw new common_1.NotFoundException("You are not in this room");
         }
-        const friends = await this.playerService.getListOfFriendsToAddinThisRoom(request.user.id, id_room['id']);
+        const friends = await this.playerService.getListOfFriendsToAddinThisRoom(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -182,7 +182,7 @@ let PlayerController = class PlayerController {
         if (status) {
             throw new common_1.NotFoundException("This player is already a member of this room");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (!admin) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
@@ -202,14 +202,14 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permission = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permission = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permission === null) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
         if (permission.statusMember === "member") {
             throw new common_1.NotFoundException("You are not an admin or owner of this room");
         }
-        const friends = await this.playerService.getListOfFriendsToUpgradeAdmininThisRoom(request.user.id, id_room['id']);
+        const friends = await this.playerService.getListOfFriendsToUpgradeAdmininThisRoom(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -228,7 +228,7 @@ let PlayerController = class PlayerController {
         if (status.statusMember !== "member" || status.is_banned === true) {
             throw new common_1.NotFoundException("Cannot set this player as Admin bcuz is not a member and maybe he is muted or banned");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (!admin) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
@@ -256,7 +256,7 @@ let PlayerController = class PlayerController {
         if (status.statusMember !== "admin" || status.is_banned === true) {
             throw new common_1.NotFoundException("This player is not an admin or is banned");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (!admin) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
@@ -276,11 +276,11 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permision = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permision = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permision === null) {
             throw new common_1.NotFoundException("You are not in this room");
         }
-        const friends = await this.playerService.getListOfFriendsToMuteinThisRoom(request.user.id, id_room['id']);
+        const friends = await this.playerService.getListOfFriendsToMuteinThisRoom(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -299,23 +299,27 @@ let PlayerController = class PlayerController {
         if (!status) {
             throw new common_1.NotFoundException("This player is not a member of this room");
         }
-        if (status && (status.is_banned === true || status.is_muted == true)) {
-            throw new common_1.NotFoundException("Cannot mute this player bcuz he is muted or banned");
+        if (status && status.is_muted == true) {
+            throw new common_1.NotFoundException("Cannot mute this player bcuz he is muted");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, Body.room_id);
+        if (status && status.is_banned == true) {
+            throw new common_1.NotFoundException("Cannot mute this player bcuz he is banned");
+        }
+        const admin = await this.playerService.getPermissions(request.user.playerId, Body.room_id);
         if (!admin) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
-        if (admin.statusMember === "member") {
+        console.log("admin.statusMember", admin.statusMember);
+        if (admin && admin.statusMember === "member") {
             throw new common_1.NotFoundException("You cannot mute this player, bcuz you're not admin or owner");
         }
-        if (admin.statusMember === "admin" && status.statusMember === "owner") {
+        if (admin && admin.statusMember === "admin" && status.statusMember === "owner") {
             throw new common_1.NotFoundException("You cannot mute the owner");
         }
-        if (admin.statusMember === "admin" && status.statusMember === "admin") {
+        if (admin && admin.statusMember === "admin" && status.statusMember === "admin") {
             throw new common_1.NotFoundException("You cannot mute another admin");
         }
-        if (admin.statusMember === "owner" && status.statusMember === "owner") {
+        if (admin && admin.statusMember === "owner" && status.statusMember === "owner") {
             throw new common_1.NotFoundException("The owner cannot mute himself");
         }
         const mute = await this.playerService.muteMember(Body.login, Body.room_id, Body.time);
@@ -331,26 +335,24 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permision = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permision = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permision === null) {
             throw new common_1.NotFoundException("You are not in this room");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (admin === null) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
         if (admin.statusMember !== "admin" && admin.statusMember !== "owner") {
             throw new common_1.NotFoundException("You cannot unmute this player");
         }
-        const friends = await this.playerService.getListOfFriendsToUnmuteinThisRoom(request.user.id, id_room['id']);
+        const friends = await this.playerService.getListOfFriendsToUnmuteinThisRoom(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(friends);
     }
     async unmuteMember(nickname, room_id, request, response) {
-        console.log("nickname", nickname['id1']);
-        console.log("room_id", room_id['id2']);
         const room = await this.playerService.findRoomById(room_id['id2']);
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
@@ -363,7 +365,7 @@ let PlayerController = class PlayerController {
         if (status && status.is_muted === false) {
             throw new common_1.NotFoundException("This player is not muted");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (admin === null) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
@@ -389,18 +391,18 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Is a DM");
         }
-        const permision = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permision = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permision === null) {
             throw new common_1.NotFoundException("You are not in this room");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (admin === null) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
         if (admin.statusMember !== "admin" && admin.statusMember !== "owner") {
             throw new common_1.NotFoundException("You cannot unmute this player");
         }
-        const friends = await this.playerService.getListOfFriendsToBaninThisRoom(request.user.id, id_room['id']);
+        const friends = await this.playerService.getListOfFriendsToBaninThisRoom(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -419,7 +421,7 @@ let PlayerController = class PlayerController {
         if (status && status.is_banned === true) {
             throw new common_1.NotFoundException("This player is already banned");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (admin === null) {
             throw new common_1.NotFoundException("You are not a member of this room");
         }
@@ -456,7 +458,7 @@ let PlayerController = class PlayerController {
         if (status && status.is_banned === true) {
             throw new common_1.NotFoundException("Cannot kick this player, bcuz he is banned from this room");
         }
-        const admin = await this.playerService.getPermissions(request.user.id, room_id['id2']);
+        const admin = await this.playerService.getPermissions(request.user.playerId, room_id['id2']);
         if (admin === null) {
             throw new common_1.NotFoundException("Cannot kick this player");
         }
@@ -481,7 +483,7 @@ let PlayerController = class PlayerController {
         });
     }
     async GetPermission(id_room, request, response) {
-        const permission = await this.playerService.getPermissions(request.user.id, id_room['id']);
+        const permission = await this.playerService.getPermissions(request.user.playerId, id_room['id']);
         if (permission == null) {
             throw new common_1.NotFoundException("Permission denied, you are not a member of this room");
         }
@@ -491,35 +493,36 @@ let PlayerController = class PlayerController {
         response.status(200).send(permission);
     }
     async GetListOfRooms(request, response) {
-        const rooms = await this.playerService.getAllRooms(request.user.id);
+        const rooms = await this.playerService.getAllRooms(request.user.playerId);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(rooms);
     }
     async CreatePublicChatRoom(Body, request, response) {
-        const room = await this.playerService.createPublicChatRoom(request.user.id, Body.name);
+        console.log("request  ", request.user);
+        const room = await this.playerService.createPublicChatRoom(request.user.playerId, Body.name);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(room);
     }
     async SetPwdToPublicChatRoom(Body, request, response) {
-        const room = await this.playerService.SetPwdToPublicChatRoom(request.user.id, Body);
+        const room = await this.playerService.SetPwdToPublicChatRoom(request.user.playerId, Body);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(room);
     }
     async CreatePrivateChatRoom(Body, request, response) {
-        const room = await this.playerService.createPrivateChatRoom(request.user.id, Body.name);
+        const room = await this.playerService.createPrivateChatRoom(request.user.playerId, Body.name);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(room);
     }
     async CreateProtectedChatRoom(Body, request, response) {
-        const room = await this.playerService.createProtectedChatRoom(request.user.id, Body);
+        const room = await this.playerService.createProtectedChatRoom(request.user.playerId, Body);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -528,14 +531,14 @@ let PlayerController = class PlayerController {
     async UpdatePwdProtectedChatRoom(Body, request, response) {
         console.log("Body.room_id : ", Body.room_id);
         console.log("Body.new_password : ", Body.new_password);
-        const room = await this.playerService.UpdatePwdProtectedChatRoom(request.user.id, Body);
+        const room = await this.playerService.UpdatePwdProtectedChatRoom(request.user.playerId, Body);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(room);
     }
     async DeletePwdProtectedChatRoom(Body, request, response) {
-        const room = await this.playerService.DeletePwdToProtectedChatRoom(request.user.id, Body.room_id);
+        const room = await this.playerService.DeletePwdToProtectedChatRoom(request.user.playerId, Body.room_id);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -549,7 +552,7 @@ let PlayerController = class PlayerController {
         response.status(200).send(type);
     }
     async GetRoomById(id_room, request, response) {
-        const room = await this.playerService.getRoomById(request.user.id, id_room['id']);
+        const room = await this.playerService.getRoomById(request.user.playerId, id_room['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -560,8 +563,8 @@ let PlayerController = class PlayerController {
         if (room.is_dm === true) {
             throw new common_1.NotFoundException("Cannot leave a DM");
         }
-        const member = await this.playerService.getPermissions(request.user.id, room_id['id']);
-        const leave = await this.playerService.leaveChannel(request.user.id, room_id['id']);
+        const member = await this.playerService.getPermissions(request.user.playerId, room_id['id']);
+        const leave = await this.playerService.leaveChannel(request.user.playerId, room_id['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -575,7 +578,7 @@ let PlayerController = class PlayerController {
         if (!room) {
             throw new common_1.NotFoundException("Room not found");
         }
-        const messages = await this.playerService.getMessagesOfRoom(request.user.id, room_id['id']);
+        const messages = await this.playerService.getMessagesOfRoom(request.user.playerId, room_id['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -585,14 +588,14 @@ let PlayerController = class PlayerController {
         console.log("Send Message");
         const user = await this.playerService.findPlayerByNickname(login['id']);
         let room = null;
-        room = await this.playerService.getRoomBetweenTwoPlayers(request.user.id, login['id']);
+        room = await this.playerService.getRoomBetweenTwoPlayers(request.user.playerId, login['id']);
         if (room === null) {
-            const friendship = await this.playerService.getFriendshipStatus(request.user.id, login['id']);
+            const friendship = await this.playerService.getFriendshipStatus(request.user.playerId, login['id']);
             if (!friendship) {
-                room = await this.playerService.createDMRoom(request.user.id, login['id']);
+                room = await this.playerService.createDMRoom(request.user.playerId, login['id']);
             }
             else if (friendship.status === 'Pending') {
-                room = await this.playerService.createDMRoom(request.user.id, login['id']);
+                room = await this.playerService.createDMRoom(request.user.playerId, login['id']);
             }
             else if (friendship.status === 'Block') {
                 throw new common_1.NotFoundException("You can not send a message to this player");
@@ -604,7 +607,7 @@ let PlayerController = class PlayerController {
         response.status(200).send(room.id);
     }
     async joinRoom(room_id, request, response) {
-        const join = await this.playerService.joinRoom(request.user.id, room_id['id']);
+        const join = await this.playerService.joinRoom(request.user.playerId, room_id['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
@@ -614,21 +617,21 @@ let PlayerController = class PlayerController {
     }
     async joinDM(room_id, request, response) {
         console.log("Join DM, login: ", room_id['id']);
-        const room = await this.playerService.joinDM(request.user.id, room_id['id']);
+        const room = await this.playerService.joinDM(request.user.playerId, room_id['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         return response.status(200).send({ room });
     }
     async joinNonProtectedRoom(room_id, request, response) {
-        const room = await this.playerService.joinRoom(request.user.id, room_id['id']);
+        const room = await this.playerService.joinRoom(request.user.playerId, room_id['id']);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         return response.status(200).send({ room });
     }
     async joinProtectedRoom(roomId_pwd, request, response) {
-        const room = await this.playerService.joinProtectedRoom(request.user.id, roomId_pwd);
+        const room = await this.playerService.joinProtectedRoom(request.user.playerId, roomId_pwd);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });

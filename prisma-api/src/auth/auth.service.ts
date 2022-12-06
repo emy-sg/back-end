@@ -32,11 +32,19 @@ export class AuthService {
         return player;
     }
 
-    public async getJwtToken(player: any) : Promise<string> {
-        return this.jwtService.sign({id :player.id}, {
-            secret: process.env.JWT_SECRET, 
-            expiresIn: process.env.JWTEXPIRATION
-        } );   
+    public async getJwtToken(playerId: string, isSecondFactorAuthenticated = false) : Promise<string> {
+        
+        const payload = {
+            playerId,
+            isSecondFactorAuthenticated,
+        };
+        return this.jwtService.sign(
+            payload,
+            {
+                secret: process.env.JWT_SECRET, 
+                expiresIn: process.env.JWTEXPIRATION
+            }
+        );   
     }
 }
 

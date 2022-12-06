@@ -605,6 +605,8 @@ let PlayerService = class PlayerService {
         });
     }
     async createPublicChatRoom(userId, nameOfRoom) {
+        console.log("userId\n", userId);
+        const me = await this.findPlayerById(userId);
         const room = await this.prisma.chatRoom.create({
             data: {
                 is_dm: false,
@@ -633,8 +635,12 @@ let PlayerService = class PlayerService {
                     create: [
                         {
                             statusMember: "owner",
+                            player: {
+                                connect: {
+                                    id: userId,
+                                }
+                            },
                             muted_since: new Date(),
-                            playerId: userId,
                         },
                     ],
                 },

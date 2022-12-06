@@ -768,7 +768,8 @@ export class PlayerService {
     // function to create a chat room between two players if they are friends
     async createPublicChatRoom(userId: string, nameOfRoom: string) {
         // console.log("createPublicChatRoom");
-        // const me = await this.findPlayerById(userId);
+        console.log("userId\n", userId);
+        const me = await this.findPlayerById(userId);
 
         // owner create a room 
         // while creating the room create a member type(permission) and set it to owner
@@ -787,7 +788,7 @@ export class PlayerService {
                             // muted_until:new Date(),
                             // player:  {
                             //     connect:{
-                            //        id: me.id,
+                            //        id: userId,
                             //     }
                             // },
                             muted_since: new Date(),
@@ -820,13 +821,13 @@ export class PlayerService {
                         {
                             statusMember: "owner",
                             // muted_until:new Date(),
-                            // player:  {
-                            //     connect:{
-                            //        id: me.id,
-                            //     }
-                            // },
+                            player:  {
+                                connect:{
+                                    id: userId,
+                                }
+                            },
                             muted_since: new Date(),
-                            playerId: userId,
+                            // playerId: userId,
                             // connect && include 
                         },
                     ],

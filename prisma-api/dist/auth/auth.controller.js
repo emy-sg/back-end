@@ -24,17 +24,11 @@ let AuthController = class AuthController {
     }
     async login(request, res) {
         const user = await this.authService.findORcreate(request.user);
-        const token = await this.authService.getJwtToken(user);
+        const token = await this.authService.getJwtToken(user.id);
         const secretData1 = {
             token,
         };
-        const secretData2 = {
-            refreshToken: '',
-        };
-        res.cookie(process.env.AUTHCOOKIE, secretData1.token, { httpOnly: true,
-        });
-        res.cookie(String('emy'), secretData2.refreshToken, { httpOnly: true,
-        });
+        res.cookie(process.env.AUTHCOOKIE, secretData1.token, { httpOnly: true, });
         return res.status(302).redirect(`http://localhost:3000/`);
     }
     async logout(request, res) {

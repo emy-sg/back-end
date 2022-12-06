@@ -24,28 +24,28 @@ export class AuthController {
 		
 		// console.log(user); // affiche uer 
 
-		const token = await this.authService.getJwtToken(user);
+		const token = await this.authService.getJwtToken(user.id);
 
 		const secretData1 = {
 			token,
 		}
-		const secretData2 = {
-			refreshToken: '',
-		}
+		// const secretData2 = {
+		// 	refreshToken: '',
+		// }
 
 
 		//If you are setting the cookie on a response in a login route in express backend for JWT and are using 'httpOnly' option is true.
 		res.cookie(
 			process.env.AUTHCOOKIE,
 			secretData1.token,
-			{httpOnly:true,
-		});
+			{httpOnly:true,}
+		);
 
-		res.cookie(
-			String('emy'),
-			secretData2.refreshToken,
-			{httpOnly:true,
-		});
+		// res.cookie(
+		// 	String('emy'),
+		// 	secretData2.refreshToken,
+		// 	{httpOnly:true,}
+		// );
 
 		// response.status(200).send(user);
 		return res.status(302).redirect(`http://localhost:3000/`);

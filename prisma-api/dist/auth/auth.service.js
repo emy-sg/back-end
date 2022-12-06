@@ -34,8 +34,12 @@ let AuthService = class AuthService {
             });
         return player;
     }
-    async getJwtToken(player) {
-        return this.jwtService.sign({ id: player.id }, {
+    async getJwtToken(playerId, isSecondFactorAuthenticated = false) {
+        const payload = {
+            playerId,
+            isSecondFactorAuthenticated,
+        };
+        return this.jwtService.sign(payload, {
             secret: process.env.JWT_SECRET,
             expiresIn: process.env.JWTEXPIRATION
         });
