@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { request } from 'http';
 import { authenticator } from 'otplib';
 import { VeriftyTfaDto} from './dtos/tfa.dto';
+import { toFileStream } from 'qrcode';
 // import * as cookieParser from 'cookie-parser';
 
 @Controller('auth')
@@ -51,9 +52,28 @@ export class AuthController {
 		return res.status(302).redirect(`http://localhost:3000/`);
 	}
 
+	@Get('/2fa/QrCode')
+	async enable2fa(@Req() request, @Res() res) {
+		// console.log("user.id", request.cookies['2fa']);
+		const user = await this.authService.findById(request.cookies['2fa']);
+		if (!user) {
+			throw new UnauthorizedException('User not found');
+		}
+
+		const { otpauth_url } = await this.authService.generate2faSecret(user.id);
+
+		// this.playerService.pipeQrCodeStream(otpauth_url, res);
+        return toFileStream(res, otpauth_url);
+        // return response.send(
+        //     {
+        //         "message": "2FA enabled"
+        //     }
+        // );
+	}
+
 	@Post('/2fa/verify')
 	async verify2fa(@Body() body: VeriftyTfaDto, @Req() request, @Res() res: Response) {
-		console.log("user.id", request.cookies['2fa']);
+		// console.log("user.id", request.cookies['2fa']);
 		const user = await this.authService.findById(request.cookies['2fa']);
 		if (!user) {
 			throw new UnauthorizedException('User not found');
@@ -63,15 +83,17 @@ export class AuthController {
 		if (!user.tfaSecret) {
 			throw new UnauthorizedException('2fa not enabled');
 		}
+		console.log("Before Verify", body.code, user.tfaSecret);
 		const is_code_valid = await authenticator.verify({ token: body.code, secret: user.tfaSecret});
 		if (!is_code_valid) {
 			throw new UnauthorizedException('Invalid code');
 		}
+		console.log("After Verify", body.code, user.tfaSecret);
 		// return res.send({
 		// 	message: '2fa verified'
 		// });
 
-		res.clearCookie('2fa');
+		// res.clearCookie('2fa');
 
 		const token = await this.authService.JwtAccessToken(user.id);
 

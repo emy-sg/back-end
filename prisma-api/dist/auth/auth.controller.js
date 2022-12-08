@@ -46,11 +46,12 @@ let AuthController = class AuthController {
         if (!user.tfaSecret) {
             throw new common_1.UnauthorizedException('2fa not enabled');
         }
+        console.log("Before Verify", body.code, user.tfaSecret);
         const is_code_valid = await otplib_1.authenticator.verify({ token: body.code, secret: user.tfaSecret });
         if (!is_code_valid) {
             throw new common_1.UnauthorizedException('Invalid code');
         }
-        res.clearCookie('2fa');
+        console.log("After Verify", body.code, user.tfaSecret);
         const token = await this.authService.JwtAccessToken(user.id);
         const secretData = {
             token,

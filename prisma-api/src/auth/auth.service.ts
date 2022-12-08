@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma.service';
+import { authenticator } from 'otplib';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +43,30 @@ export class AuthService {
             where: { id: PlayerId },
         });
         return player;
+    }
+
+    async generate2faSecret(playerId: string) //: Promise<any> {
+    {
+        const player = await this.findById(playerId);
+        if (!player) {
+            throw new NotFoundException("User Id is not found");
+        }
+
+        const secret = authenticator.generateSecret();
+
+        const otpauth_url = authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, secret);
+
+        await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                tfa: true,
+                tfaSecret: secret,
+            }
+        });
+
+        return { secret, otpauth_url };
     }
 
     public async JwtAccessToken(playerId: string/*, isSecondFactorAuthenticated = false*/) : Promise<string> {
