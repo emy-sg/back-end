@@ -60,10 +60,12 @@ export class AuthController {
 			throw new UnauthorizedException('User not found');
 		}
 
-		const { otpauth_url } = await this.authService.generate2faSecret(user.id);
+		const  otpauth_url = await this.authService.generate2faSecret(user.id);
 
-		// this.playerService.pipeQrCodeStream(otpauth_url, res);
-        return toFileStream(res, otpauth_url);
+		// // this.playerService.pipeQrCodeStream(otpauth_url, res);
+        // return toFileStream(res, otpauth_url);
+		console.log("otpauth_url", otpauth_url);
+		return res.status(200).send(otpauth_url);
         // return response.send(
         //     {
         //         "message": "2FA enabled"

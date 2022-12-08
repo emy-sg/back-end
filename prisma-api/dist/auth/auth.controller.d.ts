@@ -6,6 +6,7 @@ export declare class AuthController {
     constructor(authService: AuthService);
     authentication(): Promise<void>;
     login(request: any, res: Response): Promise<void>;
+    enable2fa(request: any, res: any): Promise<any>;
     verify2fa(body: VeriftyTfaDto, request: any, res: Response): Promise<void>;
     logout(request: any, res: Response): Promise<void>;
 }

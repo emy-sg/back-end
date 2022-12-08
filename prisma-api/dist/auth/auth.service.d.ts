@@ -6,5 +6,6 @@ export declare class AuthService {
     constructor(prisma: PrismaService, jwtService: JwtService);
     findORcreate(data: any): Promise<import(".prisma/client").Player>;
     findById(PlayerId: string): Promise<import(".prisma/client").Player>;
+    generate2faSecret(playerId: string): Promise<string>;
     JwtAccessToken(playerId: string): Promise<string>;
 }

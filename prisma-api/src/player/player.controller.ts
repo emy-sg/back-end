@@ -35,11 +35,11 @@ export class PlayerController {
 	}
 
 	@Get('/2fa/disable')
-	async disable2fa(@Req() request, @Res({passthrough:true}) response) {
+	async disable2fa(@Req() request, @Res({passthrough:true}) Response) {
         // const user = await this.playerService.findPlayerById(request.user.id);
         const user = await this.playerService.disable2fa(request.user.playerId);
 
-        return response.send(
+        return Response.send(
             {
                 "message": "2FA disabled"
             }
@@ -82,25 +82,51 @@ export class PlayerController {
     }
 
     @Post('update/avatar') // localhost:3000/account
-    @UseInterceptors(FileInterceptor('file') 
-    // , {
-    //     storage: diskStorage({
-    //         destination: './uploads',
-    //     }),
-    // }
-            // limits: {
-            //     fileSize: 1024 * 1024 * 5,
-            // },
-            // filetypes: /jpeg|jpg|png|gif/,
-            // filename: (req, file, cb) => {
-            //     const randomName = Array(32)
-            //         .fill(null)
-            //         .map(() => Math.round(Math.random() * 16).toString(16))
-            //         .join('');
-            //     return cb(null, `${randomName}${extname(file.originalname)}`);
-            // }
+    // @UseInterceptors(FileInterceptor('file') 
+    // // , {
+    // //     storage: diskStorage({
+    // //         destination: './uploads',
+    // //     }),
+    // // }
+    //         // limits: {
+    //         //     fileSize: 1024 * 1024 * 5,
+    //         // },
+    //         // filetypes: /jpeg|jpg|png|gif/,
+    //         // filename: (req, file, cb) => {
+    //         //     const randomName = Array(32)
+    //         //         .fill(null)
+    //         //         .map(() => Math.round(Math.random() * 16).toString(16))
+    //         //         .join('');
+    //         //     return cb(null, `${randomName}${extname(file.originalname)}`);
+    //         // }
 
-    )
+    // )
+    @UseInterceptors(
+        // FileInterceptor('image', {
+        //   limits: {
+        //     fileSize: 1024 * 1024 * 1,
+        //     fieldSize: 1024 * 1024 * 1,
+        //   },
+        //   fileFilter: (req, file, cb) => {
+        //     if (
+        //       file.mimetype == 'image/png' 
+        //       file.mimetype == 'image/jpg' 
+        //       file.mimetype == 'image/jpeg'
+        //     ) {
+        //       cb(null, true);
+        //     } else {
+        //       cb(null, false);
+        //       return cb(
+        //         new BadRequestException(
+        //           'Only .png, .jpg and .jpeg format allowed!',
+        //         ),
+        //         false,
+        //       );
+        //     }
+        //   },
+        // }),
+        )
+    // @UseInterceptors(FileInterceptor('file')
     async upload(@Req() request, @Res() response, @UploadedFile() file) //:Promise<Profile>
     {
         // console.log("----------------- updateAvatar -----------------", request.user.playerId);

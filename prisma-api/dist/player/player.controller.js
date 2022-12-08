@@ -15,12 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlayerController = void 0;
 const common_1 = require("@nestjs/common");
 const common_2 = require("@nestjs/common");
-const platform_express_1 = require("@nestjs/platform-express");
 const qrcode_1 = require("qrcode");
 const player_service_1 = require("./player.service");
 const passport_1 = require("@nestjs/passport");
 const updatePlayer_dto_1 = require("./dtos/updatePlayer.dto");
-const express_1 = require("express");
 let PlayerController = class PlayerController {
     constructor(playerService) {
         this.playerService = playerService;
@@ -29,9 +27,9 @@ let PlayerController = class PlayerController {
         const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
         return (0, qrcode_1.toFileStream)(res, otpauth_url);
     }
-    async disable2fa(request, res) {
+    async disable2fa(request, Response) {
         const user = await this.playerService.disable2fa(request.user.playerId);
-        return express_1.response.send({
+        return Response.send({
             "message": "2FA disabled"
         });
     }
@@ -677,7 +675,7 @@ __decorate([
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Response]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], PlayerController.prototype, "disable2fa", null);
 __decorate([
@@ -699,7 +697,7 @@ __decorate([
 ], PlayerController.prototype, "updateNickname", null);
 __decorate([
     (0, common_1.Post)('update/avatar'),
-    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_2.UseInterceptors)(),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __param(2, (0, common_2.UploadedFile)()),

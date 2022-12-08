@@ -37,8 +37,16 @@ let AuthController = class AuthController {
         res.cookie(process.env.AUTHCOOKIE, secretData.token, { httpOnly: true, });
         return res.status(302).redirect(`http://localhost:3000/`);
     }
+    async enable2fa(request, res) {
+        const user = await this.authService.findById(request.cookies['2fa']);
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const otpauth_url = await this.authService.generate2faSecret(user.id);
+        console.log("otpauth_url", otpauth_url);
+        return res.status(200).send(otpauth_url);
+    }
     async verify2fa(body, request, res) {
-        console.log("user.id", request.cookies['2fa']);
         const user = await this.authService.findById(request.cookies['2fa']);
         if (!user) {
             throw new common_1.UnauthorizedException('User not found');
@@ -80,6 +88,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Get)('/2fa/QrCode'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "enable2fa", null);
 __decorate([
     (0, common_1.Post)('/2fa/verify'),
     __param(0, (0, common_1.Body)()),

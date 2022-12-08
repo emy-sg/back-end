@@ -1,11 +1,10 @@
-/// <reference types="express" />
 import { PlayerService } from './player.service';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto } from './dtos/updatePlayer.dto';
 export declare class PlayerController {
     private readonly playerService;
     constructor(playerService: PlayerService);
     enable2fa(request: any, res: any): Promise<void>;
-    disable2fa(request: any, res: Response): Promise<import("express").Response<any, Record<string, any>>>;
+    disable2fa(request: any, Response: any): Promise<any>;
     login(request: any, response: any): Promise<void>;
     updateNickname(request: any, body: any, response: any): Promise<void>;
     upload(request: any, response: any, file: any): Promise<void>;
