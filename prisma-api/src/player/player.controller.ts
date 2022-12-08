@@ -35,7 +35,7 @@ export class PlayerController {
 	}
 
 	@Get('/2fa/disable')
-	async disable2fa(@Req() request, @Res({passthrough:true}) res: Response) {
+	async disable2fa(@Req() request, @Res({passthrough:true}) response) {
         // const user = await this.playerService.findPlayerById(request.user.id);
         const user = await this.playerService.disable2fa(request.user.playerId);
 
