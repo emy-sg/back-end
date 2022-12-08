@@ -27,7 +27,8 @@ let AuthController = class AuthController {
     async login(request, res) {
         const user = await this.authService.findORcreate(request.user);
         if (user.tfa === true) {
-            return res.status(200).send(user.id);
+            res.cookie('2fa', user.id, { httpOnly: true, });
+            return res.status(302).redirect(`http://localhost:3000/verify`);
         }
         const token = await this.authService.JwtAccessToken(user.id);
         const secretData = {
@@ -37,7 +38,8 @@ let AuthController = class AuthController {
         return res.status(302).redirect(`http://localhost:3000/`);
     }
     async verify2fa(body, request, res) {
-        const user = await this.authService.findById(body.player_id);
+        console.log("user.id", request.cookies['2fa']);
+        const user = await this.authService.findById(request.cookies['2fa']);
         if (!user) {
             throw new common_1.UnauthorizedException('User not found');
         }
@@ -48,6 +50,7 @@ let AuthController = class AuthController {
         if (!is_code_valid) {
             throw new common_1.UnauthorizedException('Invalid code');
         }
+        res.clearCookie('2fa');
         const token = await this.authService.JwtAccessToken(user.id);
         const secretData = {
             token,

@@ -19,12 +19,6 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], VeriftyTfaDto.prototype, "player_id", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
 ], VeriftyTfaDto.prototype, "code", void 0);
 exports.VeriftyTfaDto = VeriftyTfaDto;
 //# sourceMappingURL=tfa.dto.js.map

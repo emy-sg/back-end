@@ -64,8 +64,8 @@ export declare class PlayerService {
     createPublicChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createPrivateChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createProtectedChatRoom(userId: string, Body: CreateProtectedRoomDto): Promise<{
-        id: string;
         name: string;
+        id: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
@@ -73,16 +73,16 @@ export declare class PlayerService {
     }>;
     DeletePwdToProtectedChatRoom(userId: string, room_id: string): Promise<import(".prisma/client").ChatRoom>;
     SetPwdToPublicChatRoom(userId: string, Body: SetPwdToPublicChatRoomDto): Promise<{
-        id: string;
         name: string;
+        id: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
         is_protected: boolean;
     }>;
     UpdatePwdProtectedChatRoom(userId: string, Body: UpdateProtectedPasswordDto): Promise<{
-        id: string;
         name: string;
+        id: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;

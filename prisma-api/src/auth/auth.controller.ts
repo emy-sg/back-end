@@ -6,6 +6,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { request } from 'http';
 import { authenticator } from 'otplib';
 import { VeriftyTfaDto} from './dtos/tfa.dto';
+// import * as cookieParser from 'cookie-parser';
 
 @Controller('auth')
 export class AuthController {
@@ -25,7 +26,13 @@ export class AuthController {
 
 		if (user.tfa === true) {
 			// redirect to 2fa page
-			return res.status(200).send(user.id);
+			// return res.status(200).send(user.id);
+			res.cookie(
+				'2fa',
+				user.id,
+				{httpOnly:true,}
+			);
+			return res.status(302).redirect(`http://localhost:3000/verify`);   // url to 2fa page
 		}
 
 		const token = await this.authService.JwtAccessToken(user.id);
@@ -46,7 +53,8 @@ export class AuthController {
 
 	@Post('/2fa/verify')
 	async verify2fa(@Body() body: VeriftyTfaDto, @Req() request, @Res() res: Response) {
-		const user = await this.authService.findById(body.player_id);
+		console.log("user.id", request.cookies['2fa']);
+		const user = await this.authService.findById(request.cookies['2fa']);
 		if (!user) {
 			throw new UnauthorizedException('User not found');
 		}
@@ -63,6 +71,7 @@ export class AuthController {
 		// 	message: '2fa verified'
 		// });
 
+		res.clearCookie('2fa');
 
 		const token = await this.authService.JwtAccessToken(user.id);
 
