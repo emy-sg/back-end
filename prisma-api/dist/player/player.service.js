@@ -33,7 +33,6 @@ let PlayerService = class PlayerService {
         return player;
     }
     async findPlayerByNickname(login) {
-        console.log("FindPlayerByNickname", login);
         const player = await this.prisma.player.findUnique({
             where: {
                 nickname: login
@@ -85,7 +84,14 @@ let PlayerService = class PlayerService {
         return tfa;
     }
     async updateNickname(playerId, nickname) {
-        console.log("updateNickname", playerId, nickname);
+        const user = await this.prisma.player.findUnique({
+            where: {
+                nickname: nickname
+            }
+        });
+        if (user) {
+            throw new common_1.UnauthorizedException("Nickname already exist");
+        }
         const player = await this.prisma.player.update({
             where: {
                 id: playerId,

@@ -65,12 +65,13 @@ export class PlayerController {
     async updateNickname(@Req() request, @Body() body, @Res() response) //:Promise<Profile>
     {
         // console.log("----------------- updateNickname -----------------", request.user.playerId);
+        console.log(body.nickname, " ", request.user.playerId);
         const user = await this.playerService.findPlayerById(request.user.playerId);
 
-        const nickname = await this.playerService.findPlayerByNickname(body.nickname);
-        if (nickname) {
-            throw new UnauthorizedException("Nickname already exist")
-        }
+        // const nickname = await this.playerService.findPlayerByNickname(body.nickname);
+        // if (nickname) {
+        //     throw new UnauthorizedException("Nickname already exist")
+        // }
         const profile = await this.playerService.updateNickname(request.user.playerId, body.nickname);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'

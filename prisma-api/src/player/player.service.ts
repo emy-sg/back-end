@@ -39,7 +39,7 @@ export class PlayerService {
 
     async findPlayerByNickname(login: string) //: Promise<any> {
     {
-        console.log("FindPlayerByNickname", login);  // userId ===> roomId
+        // console.log("FindPlayerByNickname", login);  // userId ===> roomId
         const player = await this.prisma.player.findUnique({
             where: {
                 nickname: login
@@ -102,7 +102,16 @@ export class PlayerService {
 
     async updateNickname(playerId: string, nickname: string) //: Promise<any> {
     {
-        console.log("updateNickname", playerId, nickname);  // userId ===> roomId
+        // console.log("updateNickname", playerId, "   ", nickname);
+        const user = await this.prisma.player.findUnique({
+            where: {
+                nickname: nickname
+            }
+        });
+        if (user) {
+            throw new UnauthorizedException("Nickname already exist")
+        }
+
         const player = await this.prisma.player.update({
             where: {
                 id: playerId,
