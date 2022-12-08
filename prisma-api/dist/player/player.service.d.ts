@@ -5,6 +5,12 @@ export declare class PlayerService {
     constructor(prisma: PrismaService);
     findPlayerById(userId: string): Promise<import(".prisma/client").Player>;
     findPlayerByNickname(login: string): Promise<import(".prisma/client").Player>;
+    generate2faSecret(playerId: string): Promise<{
+        secret: string;
+        otpauth_url: string;
+    }>;
+    disable2fa(playerId: string): Promise<import(".prisma/client").Player>;
+    updateNickname(playerId: string, nickname: string): Promise<import(".prisma/client").Player>;
     findRoomById(roomId: string): Promise<import(".prisma/client").ChatRoom>;
     getTypeOfRoom(roomId: string): Promise<any>;
     getRoomById(userId: string, room_id: string): Promise<{
@@ -58,29 +64,29 @@ export declare class PlayerService {
     createPublicChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createPrivateChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createProtectedChatRoom(userId: string, Body: CreateProtectedRoomDto): Promise<{
+        id: string;
         name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
         is_protected: boolean;
-        id: string;
     }>;
     DeletePwdToProtectedChatRoom(userId: string, room_id: string): Promise<import(".prisma/client").ChatRoom>;
     SetPwdToPublicChatRoom(userId: string, Body: SetPwdToPublicChatRoomDto): Promise<{
+        id: string;
         name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
         is_protected: boolean;
-        id: string;
     }>;
     UpdatePwdProtectedChatRoom(userId: string, Body: UpdateProtectedPasswordDto): Promise<{
+        id: string;
         name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
         is_protected: boolean;
-        id: string;
     }>;
     createDMRoom(userId: string, friendname: string): Promise<import(".prisma/client").ChatRoom>;
     getPermissions(userId: string, id_room: string): Promise<any>;

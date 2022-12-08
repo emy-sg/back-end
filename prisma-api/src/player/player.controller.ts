@@ -1,17 +1,52 @@
-import { Body, Controller, Get, Param, Post, Req, Request, Res, UseGuards, NotFoundException, UnauthorizedException , HttpException } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Request, Res, UseGuards, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { toFileStream } from 'qrcode';
+import { diskStorage } from 'multer';
 // import { Response } from 'express';
 import { PlayerService } from './player.service';
 import { AuthGuard } from '@nestjs/passport';
 import { userInfo } from 'os';
 import { resourceUsage } from 'process';
 import { NotFoundError } from 'rxjs';
+// import { PrismaService } from 'src/prisma.service';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto} from './dtos/updatePlayer.dto';
+import { response } from 'express';
 
 @Controller('player')
 @UseGuards(AuthGuard('jwt'))
 // JWT Guard return in user object
 export class PlayerController {
     constructor(private readonly playerService: PlayerService) { }
+
+
+	@Get('/2fa/enable')
+	async enable2fa(@Req() request, @Res() res) {
+		// const user = await this.playerService.findPlayerById(request.user.id);
+		const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
+
+		// this.playerService.pipeQrCodeStream(otpauth_url, res);
+        return toFileStream(res, otpauth_url);
+        // return response.send(
+        //     {
+        //         "message": "2FA enabled"
+        //     }
+        // );
+	}
+
+	@Get('/2fa/disable')
+	async disable2fa(@Req() request, @Res({passthrough:true}) res: Response) {
+        // const user = await this.playerService.findPlayerById(request.user.id);
+        const user = await this.playerService.disable2fa(request.user.playerId);
+
+        return response.send(
+            {
+                "message": "2FA disabled"
+            }
+        );
+	}
+
+
     @Get('myprofile') // localhost:3000/account 
     async login(@Req() request, @Res() response) //:Promise<Profile>
     {
@@ -25,6 +60,53 @@ export class PlayerController {
         // console.log("----------------- Finish myprofile -----------------", profile.nickname);
         response.status(200).send(profile);
     }
+
+    @Post('update/nickname') // localhost:3000/account 
+    async updateNickname(@Req() request, @Body() body, @Res() response) //:Promise<Profile>
+    {
+        // console.log("----------------- updateNickname -----------------", request.user.playerId);
+        const user = await this.playerService.findPlayerById(request.user.playerId);
+
+        const nickname = await this.playerService.findPlayerByNickname(body.nickname);
+        if (nickname) {
+            throw new UnauthorizedException("Nickname already exist")
+        }
+        const profile = await this.playerService.updateNickname(request.user.playerId, body.nickname);
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        }
+        )
+        // console.log("----------------- Finish myprofile -----------------", profile.nickname);
+        response.status(200).send(profile);
+    }
+
+    @Post('update/avatar') // localhost:3000/account
+    @UseInterceptors(FileInterceptor('file') 
+    // , {
+    //     storage: diskStorage({
+    //         destination: './uploads',
+    //     }),
+    // }
+            // limits: {
+            //     fileSize: 1024 * 1024 * 5,
+            // },
+            // filetypes: /jpeg|jpg|png|gif/,
+            // filename: (req, file, cb) => {
+            //     const randomName = Array(32)
+            //         .fill(null)
+            //         .map(() => Math.round(Math.random() * 16).toString(16))
+            //         .join('');
+            //     return cb(null, `${randomName}${extname(file.originalname)}`);
+            // }
+
+    )
+    async upload(@Req() request, @Res() response, @UploadedFile() file) //:Promise<Profile>
+    {
+        // console.log("----------------- updateAvatar -----------------", request.user.playerId);
+        // const profile = await this.playerService.updateAvatar(request.user.playerId, body.avatar);
+        console.log(file);
+    }
+
 
     // This is for guetting player profile
     @Get('/profile/:id') // id is player

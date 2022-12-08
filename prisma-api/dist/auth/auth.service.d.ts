@@ -5,5 +5,6 @@ export declare class AuthService {
     private jwtService;
     constructor(prisma: PrismaService, jwtService: JwtService);
     findORcreate(data: any): Promise<import(".prisma/client").Player>;
-    getJwtToken(playerId: string, isSecondFactorAuthenticated?: boolean): Promise<string>;
+    findById(PlayerId: string): Promise<import(".prisma/client").Player>;
+    JwtAccessToken(playerId: string): Promise<string>;
 }

@@ -8,6 +8,7 @@ import { RouterModule } from '@nestjs/core';
 import { stat } from 'fs';
 import { networkInterfaces } from 'os';
 import { PrismaService } from 'src/prisma.service';
+import { authenticator } from 'otplib';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto} from './dtos/updatePlayer.dto';
 
 @Injectable()
@@ -48,6 +49,68 @@ export class PlayerService {
         if (!player) {
             throw new NotFoundException('Profile not found')
         }
+        return player;
+    }
+
+    async generate2faSecret(playerId: string) //: Promise<any> {
+    {
+        const player = await this.findPlayerById(playerId);
+        if (!player) {
+            throw new NotFoundException("User Id is not found");
+        }
+        if (player && player.tfa === true) {
+            throw new NotFoundException("2FA is already enabled");
+        }
+
+        const secret = authenticator.generateSecret();
+
+        const otpauth_url = authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, secret);
+
+        await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                tfa: true,
+                tfaSecret: secret,
+            }
+        });
+
+        return { secret, otpauth_url };
+    }
+
+    async disable2fa(playerId: string) //: Promise<any> {
+    {
+        const player = await this.findPlayerById(playerId);
+        if (!player) {
+            throw new NotFoundException("User Id is not found");
+        }
+        if (player && player.tfa === false) {
+            throw new NotFoundException("2FA is already disabled");
+        }
+        const tfa = await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                tfa: false,
+                tfaSecret: null,
+            }
+        });
+        return tfa;
+    }
+
+    async updateNickname(playerId: string, nickname: string) //: Promise<any> {
+    {
+        console.log("updateNickname", playerId, nickname);  // userId ===> roomId
+        const player = await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                nickname: nickname,
+            }
+        });
         return player;
     }
 
@@ -1380,7 +1443,9 @@ export class PlayerService {
                 id: room_id,
             }
         });
-        console.log("room ===>", room);
+        if (room && room.is_dm === false) {
+            throw new NotFoundException("This is not a DM room");
+        }
         return await this.getRoomById(userId, room.id);
     }
 

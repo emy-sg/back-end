@@ -32,14 +32,29 @@ export class AuthService {
         return player;
     }
 
-    public async getJwtToken(playerId: string, isSecondFactorAuthenticated = false) : Promise<string> {
+    async findById(PlayerId: string) // data is the user object from 42
+    {
+        // console.log("findORcreate");
+        // console.log(data);
+
+        const player = await this.prisma.player.findUnique
+        ({
+            where: { id: PlayerId },
+        });
+        return player;
+    }
+
+    public async JwtAccessToken(playerId: string/*, isSecondFactorAuthenticated = false*/) : Promise<string> {
         
-        const payload = {
-            playerId,
-            isSecondFactorAuthenticated,
-        };
+        // const payload = {
+        //     playerId,
+        //     isSecondFactorAuthenticated,
+        // };
         return this.jwtService.sign(
-            payload,
+            {
+                playerId,
+                // isSecondFactorAuthenticated,
+            },
             {
                 secret: process.env.JWT_SECRET, 
                 expiresIn: process.env.JWTEXPIRATION

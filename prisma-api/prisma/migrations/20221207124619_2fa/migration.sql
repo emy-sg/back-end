@@ -7,7 +7,9 @@ CREATE TABLE "Player" (
     "avatar" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "wins" INTEGER NOT NULL DEFAULT 0,
-    "loses" INTEGER NOT NULL DEFAULT 0
+    "loses" INTEGER NOT NULL DEFAULT 0,
+    "tfa" BOOLEAN NOT NULL DEFAULT false,
+    "tfaSecret" TEXT
 );
 
 -- CreateTable

@@ -14,12 +14,26 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlayerController = void 0;
 const common_1 = require("@nestjs/common");
+const common_2 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
+const qrcode_1 = require("qrcode");
 const player_service_1 = require("./player.service");
 const passport_1 = require("@nestjs/passport");
 const updatePlayer_dto_1 = require("./dtos/updatePlayer.dto");
+const express_1 = require("express");
 let PlayerController = class PlayerController {
     constructor(playerService) {
         this.playerService = playerService;
+    }
+    async enable2fa(request, res) {
+        const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
+        return (0, qrcode_1.toFileStream)(res, otpauth_url);
+    }
+    async disable2fa(request, res) {
+        const user = await this.playerService.disable2fa(request.user.playerId);
+        return express_1.response.send({
+            "message": "2FA disabled"
+        });
     }
     async login(request, response) {
         const profile = await this.playerService.findPlayerById(request.user.playerId);
@@ -27,6 +41,21 @@ let PlayerController = class PlayerController {
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         response.status(200).send(profile);
+    }
+    async updateNickname(request, body, response) {
+        const user = await this.playerService.findPlayerById(request.user.playerId);
+        const nickname = await this.playerService.findPlayerByNickname(body.nickname);
+        if (nickname) {
+            throw new common_1.UnauthorizedException("Nickname already exist");
+        }
+        const profile = await this.playerService.updateNickname(request.user.playerId, body.nickname);
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        });
+        response.status(200).send(profile);
+    }
+    async upload(request, response, file) {
+        console.log(file);
     }
     async getProfile(nickname, request, response) {
         const profile = await this.playerService.findPlayerByNickname(nickname['id']);
@@ -639,6 +668,22 @@ let PlayerController = class PlayerController {
     }
 };
 __decorate([
+    (0, common_1.Get)('/2fa/enable'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], PlayerController.prototype, "enable2fa", null);
+__decorate([
+    (0, common_1.Get)('/2fa/disable'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Response]),
+    __metadata("design:returntype", Promise)
+], PlayerController.prototype, "disable2fa", null);
+__decorate([
     (0, common_1.Get)('myprofile'),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
@@ -646,6 +691,25 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], PlayerController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('update/nickname'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Body)()),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], PlayerController.prototype, "updateNickname", null);
+__decorate([
+    (0, common_1.Post)('update/avatar'),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __param(2, (0, common_2.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, Object]),
+    __metadata("design:returntype", Promise)
+], PlayerController.prototype, "upload", null);
 __decorate([
     (0, common_1.Get)('/profile/:id'),
     __param(0, (0, common_1.Param)()),
