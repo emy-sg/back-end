@@ -26,6 +26,10 @@ export class PlayerController {
 		const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
 
 		// this.playerService.pipeQrCodeStream(otpauth_url, res);
+
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        })
         return toFileStream(res, otpauth_url);
         // return response.send(
         //     {
@@ -39,6 +43,9 @@ export class PlayerController {
         // const user = await this.playerService.findPlayerById(request.user.id);
         const user = await this.playerService.disable2fa(request.user.playerId);
 
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        })
         return Response.send(
             {
                 "message": "2FA disabled"

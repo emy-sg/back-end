@@ -110,7 +110,17 @@ export class AuthController {
 			{httpOnly:true,}
 		);
 
-		return res.status(302).redirect(`http://localhost:3000/`);
+		// return res.status(302).redirect(`http://localhost:3000/`);
+
+        res.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        }
+        )
+        // console.log("-------------- Finish Request Friendship ------------------");
+        res.status(200).send({
+                message: "2FA verified"
+            }
+        );
 	}
 
 	@Get('/logout')

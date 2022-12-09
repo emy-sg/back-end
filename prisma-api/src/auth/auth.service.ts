@@ -66,7 +66,7 @@ export class AuthService {
             }
         });
 
-        return otpauth_url;
+        return { secret, otpauth_url };
     }
 
     public async JwtAccessToken(playerId: string/*, isSecondFactorAuthenticated = false*/) : Promise<string> {
