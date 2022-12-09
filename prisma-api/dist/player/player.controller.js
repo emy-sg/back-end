@@ -15,20 +15,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PlayerController = void 0;
 const common_1 = require("@nestjs/common");
 const common_2 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const qrcode_1 = require("qrcode");
 const player_service_1 = require("./player.service");
 const passport_1 = require("@nestjs/passport");
 const updatePlayer_dto_1 = require("./dtos/updatePlayer.dto");
+const express_1 = require("express");
 let PlayerController = class PlayerController {
     constructor(playerService) {
         this.playerService = playerService;
     }
     async enable2fa(request, res) {
         const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
+        express_1.response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        });
         return (0, qrcode_1.toFileStream)(res, otpauth_url);
     }
     async disable2fa(request, Response) {
         const user = await this.playerService.disable2fa(request.user.playerId);
+        express_1.response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        });
         return Response.send({
             "message": "2FA disabled"
         });
@@ -697,10 +705,15 @@ __decorate([
 ], PlayerController.prototype, "updateNickname", null);
 __decorate([
     (0, common_1.Post)('update/avatar'),
-    (0, common_2.UseInterceptors)(),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
-    __param(2, (0, common_2.UploadedFile)()),
+    __param(2, (0, common_2.UploadedFile)(new common_1.ParseFilePipe({
+        validators: [
+            new common_1.FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+            new common_1.MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
+        ],
+    }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", Promise)

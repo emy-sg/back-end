@@ -65,7 +65,12 @@ let AuthController = class AuthController {
             token,
         };
         res.cookie(process.env.AUTHCOOKIE, secretData.token, { httpOnly: true, });
-        return res.status(302).redirect(`http://localhost:3000/`);
+        res.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        });
+        res.status(200).send({
+            message: "2FA verified"
+        });
     }
     async logout(request, res) {
         res.clearCookie(process.env.AUTHCOOKIE);

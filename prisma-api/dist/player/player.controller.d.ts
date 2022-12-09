@@ -1,3 +1,4 @@
+/// <reference types="multer" />
 import { PlayerService } from './player.service';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto } from './dtos/updatePlayer.dto';
 export declare class PlayerController {
@@ -7,7 +8,7 @@ export declare class PlayerController {
     disable2fa(request: any, Response: any): Promise<any>;
     login(request: any, response: any): Promise<void>;
     updateNickname(request: any, body: any, response: any): Promise<void>;
-    upload(request: any, response: any, file: any): Promise<void>;
+    upload(request: any, response: any, file: Express.Multer.File): Promise<void>;
     getProfile(nickname: string, request: any, response: any): Promise<void>;
     isBlocked(login: string, request: any, response: any): Promise<void>;
     checkStatusFriendship(login: string, request: any, response: any): Promise<void>;

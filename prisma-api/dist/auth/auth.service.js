@@ -57,7 +57,7 @@ let AuthService = class AuthService {
                 tfaSecret: secret,
             }
         });
-        return otpauth_url;
+        return { secret, otpauth_url };
     }
     async JwtAccessToken(playerId) {
         return this.jwtService.sign({

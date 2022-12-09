@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Post, Req, Request, Res, UseGuards, NotFoundException, UnauthorizedException} from '@nestjs/common';
+import { Body,   ParseFilePipe,
+    FileTypeValidator,
+    MaxFileSizeValidator,Controller, Get, Param, Post, Req, Request, Res, UseGuards, NotFoundException, BadRequestException, UnauthorizedException} from '@nestjs/common';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { toFileStream } from 'qrcode';
@@ -108,7 +110,34 @@ export class PlayerController {
     //         // }
 
     // )
-    @UseInterceptors(
+     @UseInterceptors(FileInterceptor('file'),
+    //  {
+    //     storage: diskStorage({
+    //         destination: './uploads',
+    //     }),
+    // }
+        // {
+            // limits: {
+            //     fileSize: 1024 * 1024 * 5,
+            // },
+            // fileFilter: (req, file, cb) => {
+            //     if (
+            //         file.mimetype == 'image/png' ||
+            //         file.mimetype == 'image/jpg' ||
+            //         file.mimetype == 'image/jpeg'
+            //     ) {
+            //         cb(null, true);
+            //     } else {
+            //         cb(null, false);
+            //         return cb(
+            //             new BadRequestException(
+            //                 'Only .png, .jpg and .jpeg format allowed!',
+            //             ),
+            //             false,
+            //         );
+            //     }
+            // }
+        // }
         // FileInterceptor('image', {
         //   limits: {
         //     fileSize: 1024 * 1024 * 1,
@@ -131,10 +160,17 @@ export class PlayerController {
         //       );
         //     }
         //   },
-        // }),
-        )
-    // @UseInterceptors(FileInterceptor('file')
-    async upload(@Req() request, @Res() response, @UploadedFile() file) //:Promise<Profile>
+        // })
+    )
+    async upload(@Req() request, @Res() response, @UploadedFile(
+        new ParseFilePipe({
+            validators: [
+              new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+              new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
+            ],
+          }),
+
+    ) file: Express.Multer.File) //:Promise<Profile>
     {
         // console.log("----------------- updateAvatar -----------------", request.user.playerId);
         // const profile = await this.playerService.updateAvatar(request.user.playerId, body.avatar);
