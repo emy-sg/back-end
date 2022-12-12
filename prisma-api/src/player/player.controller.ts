@@ -30,7 +30,7 @@ export class PlayerController {
 
 		// this.playerService.pipeQrCodeStream(otpauth_url, res);
 
-        response.set({
+        res.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         })
         return toFileStream(res, otpauth_url);
@@ -42,14 +42,15 @@ export class PlayerController {
 	}
 
 	@Get('/2fa/disable')
-	async disable2fa(@Req() request, @Res({passthrough:true}) response) {
+	async disable2fa(@Req() request, @Res() res) {
+        console.log("disable2fa");
         // const user = await this.playerService.findPlayerById(request.user.id);
         const user = await this.playerService.disable2fa(request.user.playerId);
 
-        response.set({
-            'Access-Control-Allow-Origin': 'http://localhost:3000'
-        })
-        return response.send(
+        // response.set({
+        //     'Access-Control-Allow-Origin': 'http://localhost:3000'
+        // })
+        return res.send(
             {
                 "message": "2FA disabled"
             }
@@ -112,18 +113,17 @@ export class PlayerController {
             ],
           }),)  file: Express.Multer.File) //:Promise<Profile>
     {
-        console.log("----------------- updateAvatar -----------------", request.user.playerId);
+        // console.log("----------------- updateAvatar -----------------", request.user.playerId);
         // const profile = await this.playerService.updateAvatar(request.user.playerId, body.avatar);
-        await this.playerService.uploadAvatar(request.user.playerId, file);
+        const new_avatar = await this.playerService.uploadAvatar(request.user.playerId, file);
+        // console.log(new_avatar.avatar);
        
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         }
         )
         // console.log("----------------- Finish myprofile -----------------", profile.nickname);
-        response.status(200).send({
-            message: "Avatar updated"
-        });
+        response.status(200).send(new_avatar.avatar);
     }
 
     // This is for guetting player profile

@@ -5,7 +5,7 @@ export declare class PlayerController {
     private readonly playerService;
     constructor(playerService: PlayerService);
     enable2fa(request: any, res: any): Promise<void>;
-    disable2fa(request: any, response: any): Promise<any>;
+    disable2fa(request: any, res: any): Promise<any>;
     login(request: any, response: any): Promise<void>;
     updateNickname(request: any, body: any, response: any): Promise<void>;
     upload(request: any, response: any, file: Express.Multer.File): Promise<void>;

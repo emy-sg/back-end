@@ -64,7 +64,7 @@ export class PlayerService {
     {
         const player = await this.findPlayerById(playerId);
         if (!player) {
-            throw new NotFoundException("User Id is not found");
+            throw new NotFoundException("Generate 2fa Secret User Id is not found");
         }
         if (player && player.tfa === true) {
             throw new NotFoundException("2FA is already enabled");
@@ -142,7 +142,7 @@ export class PlayerService {
 
         const avatar_url = uploadedImage.secure_url;
 
-        console.log("avatar_url", avatar_url)
+        // console.log("avatar_url", avatar_url)
         // const avatar_url = "http://localhost:5000/" + avatar.path;
         // const avatar_url = avatar.path;
 

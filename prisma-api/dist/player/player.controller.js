@@ -21,7 +21,6 @@ const multer_1 = require("multer");
 const player_service_1 = require("./player.service");
 const passport_1 = require("@nestjs/passport");
 const updatePlayer_dto_1 = require("./dtos/updatePlayer.dto");
-const express_1 = require("express");
 const path_1 = require("path");
 let PlayerController = class PlayerController {
     constructor(playerService) {
@@ -29,17 +28,15 @@ let PlayerController = class PlayerController {
     }
     async enable2fa(request, res) {
         const { otpauth_url } = await this.playerService.generate2faSecret(request.user.playerId);
-        express_1.response.set({
+        res.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
         return (0, qrcode_1.toFileStream)(res, otpauth_url);
     }
-    async disable2fa(request, response) {
+    async disable2fa(request, res) {
+        console.log("disable2fa");
         const user = await this.playerService.disable2fa(request.user.playerId);
-        response.set({
-            'Access-Control-Allow-Origin': 'http://localhost:3000'
-        });
-        return response.send({
+        return res.send({
             "message": "2FA disabled"
         });
     }
@@ -60,14 +57,11 @@ let PlayerController = class PlayerController {
         response.status(200).send(profile);
     }
     async upload(request, response, file) {
-        console.log("----------------- updateAvatar -----------------", request.user.playerId);
-        await this.playerService.uploadAvatar(request.user.playerId, file);
+        const new_avatar = await this.playerService.uploadAvatar(request.user.playerId, file);
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
-        response.status(200).send({
-            message: "Avatar updated"
-        });
+        response.status(200).send(new_avatar.avatar);
     }
     async getProfile(nickname, request, response) {
         const profile = await this.playerService.findPlayerByNickname(nickname['id']);
@@ -690,7 +684,7 @@ __decorate([
 __decorate([
     (0, common_1.Get)('/2fa/disable'),
     __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Res)({ passthrough: true })),
+    __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)

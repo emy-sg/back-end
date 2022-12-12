@@ -52,7 +52,7 @@ let PlayerService = class PlayerService {
     async generate2faSecret(playerId) {
         const player = await this.findPlayerById(playerId);
         if (!player) {
-            throw new common_1.NotFoundException("User Id is not found");
+            throw new common_1.NotFoundException("Generate 2fa Secret User Id is not found");
         }
         if (player && player.tfa === true) {
             throw new common_1.NotFoundException("2FA is already enabled");
@@ -112,7 +112,6 @@ let PlayerService = class PlayerService {
         const player = await this.findPlayerById(playerId);
         const uploadedImage = await cloudinary.uploader.upload(avatar.path, { folder: "uploads" });
         const avatar_url = uploadedImage.secure_url;
-        console.log("avatar_url", avatar_url);
         const player_avatar = await this.prisma.player.update({
             where: {
                 id: playerId,
