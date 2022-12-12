@@ -10,6 +10,14 @@ import { networkInterfaces } from 'os';
 import { PrismaService } from 'src/prisma.service';
 import { authenticator } from 'otplib';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto} from './dtos/updatePlayer.dto';
+import { getFileInfo } from 'prettier';
+
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: process.env.CLD_CLOUD_NAME,
+    api_key: process.env.CLD_API_KEY,
+    api_secret: process.env.CLD_API_SECRET,
+});
 
 @Injectable()
 export class PlayerService {
@@ -121,6 +129,36 @@ export class PlayerService {
             }
         });
         return player;
+    }
+
+    async uploadAvatar(playerId: string, avatar: Express.Multer.File) //: Promise<any> 
+    {
+        // console.log("uploadAvatar", playerId, "   ", password
+        const player = await this.findPlayerById(playerId);
+        // console.log("player", player)
+        
+        const uploadedImage = await cloudinary.uploader.upload(avatar.path, { folder: "uploads" })
+        // console.log("uploadedImage", uploadedImage)
+
+        const avatar_url = uploadedImage.secure_url;
+
+        console.log("avatar_url", avatar_url)
+        // const avatar_url = "http://localhost:5000/" + avatar.path;
+        // const avatar_url = avatar.path;
+
+
+        // const avatar_url = await this.cloudinaryService.uploadImage(avatar.path, "avatars");
+
+        const player_avatar = await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                avatar: avatar_url,
+            }
+        });
+        // console.log("player withe new avatar ", player_avatar)
+        return player_avatar;
     }
 
     // ------------------- GET list of Rooms -------------------

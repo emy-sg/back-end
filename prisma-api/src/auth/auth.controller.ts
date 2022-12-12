@@ -60,7 +60,7 @@ export class AuthController {
 			throw new UnauthorizedException('User not found');
 		}
 
-		const  otpauth_url = await this.authService.generate2faSecret(user.id);
+		const  otpauth_url = await this.authService.generateQrCode(user.id);
 
 		// // this.playerService.pipeQrCodeStream(otpauth_url, res);
         // return toFileStream(res, otpauth_url);

@@ -1,3 +1,4 @@
+/// <reference types="multer" />
 import { PrismaService } from 'src/prisma.service';
 import { CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto } from './dtos/updatePlayer.dto';
 export declare class PlayerService {
@@ -11,6 +12,7 @@ export declare class PlayerService {
     }>;
     disable2fa(playerId: string): Promise<import(".prisma/client").Player>;
     updateNickname(playerId: string, nickname: string): Promise<import(".prisma/client").Player>;
+    uploadAvatar(playerId: string, avatar: Express.Multer.File): Promise<import(".prisma/client").Player>;
     findRoomById(roomId: string): Promise<import(".prisma/client").ChatRoom>;
     getTypeOfRoom(roomId: string): Promise<any>;
     getRoomById(userId: string, room_id: string): Promise<{
@@ -64,8 +66,8 @@ export declare class PlayerService {
     createPublicChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createPrivateChatRoom(userId: string, nameOfRoom: string): Promise<import(".prisma/client").ChatRoom>;
     createProtectedChatRoom(userId: string, Body: CreateProtectedRoomDto): Promise<{
-        name: string;
         id: string;
+        name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
@@ -73,16 +75,16 @@ export declare class PlayerService {
     }>;
     DeletePwdToProtectedChatRoom(userId: string, room_id: string): Promise<import(".prisma/client").ChatRoom>;
     SetPwdToPublicChatRoom(userId: string, Body: SetPwdToPublicChatRoomDto): Promise<{
-        name: string;
         id: string;
+        name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;
         is_protected: boolean;
     }>;
     UpdatePwdProtectedChatRoom(userId: string, Body: UpdateProtectedPasswordDto): Promise<{
-        name: string;
         id: string;
+        name: string;
         is_dm: boolean;
         is_public: boolean;
         is_private: boolean;

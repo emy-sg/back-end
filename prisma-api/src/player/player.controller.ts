@@ -14,6 +14,7 @@ import { NotFoundError } from 'rxjs';
 // import { PrismaService } from 'src/prisma.service';
 import { MutePlayerInRoomDto, CreateProtectedRoomDto, JoinProtectedRoomDto, SetPwdToPublicChatRoomDto, UpdateProtectedPasswordDto} from './dtos/updatePlayer.dto';
 import { response } from 'express';
+import { extname } from 'path';
 
 @Controller('player')
 @UseGuards(AuthGuard('jwt'))
@@ -41,14 +42,14 @@ export class PlayerController {
 	}
 
 	@Get('/2fa/disable')
-	async disable2fa(@Req() request, @Res({passthrough:true}) Response) {
+	async disable2fa(@Req() request, @Res({passthrough:true}) response) {
         // const user = await this.playerService.findPlayerById(request.user.id);
         const user = await this.playerService.disable2fa(request.user.playerId);
 
         response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         })
-        return Response.send(
+        return response.send(
             {
                 "message": "2FA disabled"
             }
@@ -90,93 +91,40 @@ export class PlayerController {
         response.status(200).send(profile);
     }
 
-    @Post('update/avatar') // localhost:3000/account
-    // @UseInterceptors(FileInterceptor('file') 
-    // // , {
-    // //     storage: diskStorage({
-    // //         destination: './uploads',
-    // //     }),
-    // // }
-    //         // limits: {
-    //         //     fileSize: 1024 * 1024 * 5,
-    //         // },
-    //         // filetypes: /jpeg|jpg|png|gif/,
-    //         // filename: (req, file, cb) => {
-    //         //     const randomName = Array(32)
-    //         //         .fill(null)
-    //         //         .map(() => Math.round(Math.random() * 16).toString(16))
-    //         //         .join('');
-    //         //     return cb(null, `${randomName}${extname(file.originalname)}`);
-    //         // }
-
-    // )
-     @UseInterceptors(FileInterceptor('file'),
-    //  {
-    //     storage: diskStorage({
-    //         destination: './uploads',
-    //     }),
-    // }
-        // {
-            // limits: {
-            //     fileSize: 1024 * 1024 * 5,
-            // },
-            // fileFilter: (req, file, cb) => {
-            //     if (
-            //         file.mimetype == 'image/png' ||
-            //         file.mimetype == 'image/jpg' ||
-            //         file.mimetype == 'image/jpeg'
-            //     ) {
-            //         cb(null, true);
-            //     } else {
-            //         cb(null, false);
-            //         return cb(
-            //             new BadRequestException(
-            //                 'Only .png, .jpg and .jpeg format allowed!',
-            //             ),
-            //             false,
-            //         );
-            //     }
-            // }
-        // }
-        // FileInterceptor('image', {
-        //   limits: {
-        //     fileSize: 1024 * 1024 * 1,
-        //     fieldSize: 1024 * 1024 * 1,
-        //   },
-        //   fileFilter: (req, file, cb) => {
-        //     if (
-        //       file.mimetype == 'image/png' 
-        //       file.mimetype == 'image/jpg' 
-        //       file.mimetype == 'image/jpeg'
-        //     ) {
-        //       cb(null, true);
-        //     } else {
-        //       cb(null, false);
-        //       return cb(
-        //         new BadRequestException(
-        //           'Only .png, .jpg and .jpeg format allowed!',
-        //         ),
-        //         false,
-        //       );
-        //     }
-        //   },
-        // })
-    )
+    @Post('update/avatar')
+    @UseInterceptors(FileInterceptor('file',
+        {
+            storage: diskStorage({
+                destination: './uploads',
+                filename: (req, file, cb) => {
+                    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+                    const ext = extname(file.originalname)
+                    cb(null, uniqueSuffix + ext)
+                }
+            }),
+        }
+    ))
     async upload(@Req() request, @Res() response, @UploadedFile(
         new ParseFilePipe({
             validators: [
               new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
               new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
             ],
-          }),
-
-    ) file: Express.Multer.File) //:Promise<Profile>
+          }),)  file: Express.Multer.File) //:Promise<Profile>
     {
-        // console.log("----------------- updateAvatar -----------------", request.user.playerId);
+        console.log("----------------- updateAvatar -----------------", request.user.playerId);
         // const profile = await this.playerService.updateAvatar(request.user.playerId, body.avatar);
-        console.log(file);
+        await this.playerService.uploadAvatar(request.user.playerId, file);
+       
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        }
+        )
+        // console.log("----------------- Finish myprofile -----------------", profile.nickname);
+        response.status(200).send({
+            message: "Avatar updated"
+        });
     }
-
 
     // This is for guetting player profile
     @Get('/profile/:id') // id is player

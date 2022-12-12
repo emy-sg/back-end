@@ -41,23 +41,13 @@ let AuthService = class AuthService {
         });
         return player;
     }
-    async generate2faSecret(playerId) {
+    async generateQrCode(playerId) {
         const player = await this.findById(playerId);
         if (!player) {
             throw new common_1.NotFoundException("User Id is not found");
         }
-        const secret = otplib_1.authenticator.generateSecret();
-        const otpauth_url = otplib_1.authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, secret);
-        await this.prisma.player.update({
-            where: {
-                id: playerId,
-            },
-            data: {
-                tfa: true,
-                tfaSecret: secret,
-            }
-        });
-        return { secret, otpauth_url };
+        const otpauth_url = otplib_1.authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, player.tfaSecret);
+        return { otpauth_url };
     }
     async JwtAccessToken(playerId) {
         return this.jwtService.sign({

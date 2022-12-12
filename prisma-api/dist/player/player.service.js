@@ -14,6 +14,12 @@ const common_1 = require("@nestjs/common");
 const bcrypt = require("bcrypt");
 const prisma_service_1 = require("../prisma.service");
 const otplib_1 = require("otplib");
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: process.env.CLD_CLOUD_NAME,
+    api_key: process.env.CLD_API_KEY,
+    api_secret: process.env.CLD_API_SECRET,
+});
 let PlayerService = class PlayerService {
     constructor(prisma) {
         this.prisma = prisma;
@@ -101,6 +107,21 @@ let PlayerService = class PlayerService {
             }
         });
         return player;
+    }
+    async uploadAvatar(playerId, avatar) {
+        const player = await this.findPlayerById(playerId);
+        const uploadedImage = await cloudinary.uploader.upload(avatar.path, { folder: "uploads" });
+        const avatar_url = uploadedImage.secure_url;
+        console.log("avatar_url", avatar_url);
+        const player_avatar = await this.prisma.player.update({
+            where: {
+                id: playerId,
+            },
+            data: {
+                avatar: avatar_url,
+            }
+        });
+        return player_avatar;
     }
     async findRoomById(roomId) {
         const room = await this.prisma.chatRoom.findUnique({

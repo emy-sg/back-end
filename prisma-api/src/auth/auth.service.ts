@@ -45,28 +45,28 @@ export class AuthService {
         return player;
     }
 
-    async generate2faSecret(playerId: string) //: Promise<any> {
+    async generateQrCode(playerId: string) //: Promise<any> {
     {
         const player = await this.findById(playerId);
         if (!player) {
             throw new NotFoundException("User Id is not found");
         }
 
-        const secret = authenticator.generateSecret();
+        // const secret = authenticator.generateSecret();
 
-        const otpauth_url = authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, secret);
+        const otpauth_url = authenticator.keyuri(player.email, process.env.TWO_FACTOR_AUTHENTICATION_APP_NAME, player.tfaSecret);
 
-        await this.prisma.player.update({
-            where: {
-                id: playerId,
-            },
-            data: {
-                tfa: true,
-                tfaSecret: secret,
-            }
-        });
+        // await this.prisma.player.update({
+        //     where: {
+        //         id: playerId,
+        //     },
+        //     data: {
+        //         tfa: true,
+        //         tfaSecret: secret,
+        //     }
+        // });
 
-        return { secret, otpauth_url };
+        return { otpauth_url };
     }
 
     public async JwtAccessToken(playerId: string/*, isSecondFactorAuthenticated = false*/) : Promise<string> {

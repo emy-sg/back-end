@@ -17,10 +17,12 @@ const common_1 = require("@nestjs/common");
 const common_2 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const qrcode_1 = require("qrcode");
+const multer_1 = require("multer");
 const player_service_1 = require("./player.service");
 const passport_1 = require("@nestjs/passport");
 const updatePlayer_dto_1 = require("./dtos/updatePlayer.dto");
 const express_1 = require("express");
+const path_1 = require("path");
 let PlayerController = class PlayerController {
     constructor(playerService) {
         this.playerService = playerService;
@@ -32,12 +34,12 @@ let PlayerController = class PlayerController {
         });
         return (0, qrcode_1.toFileStream)(res, otpauth_url);
     }
-    async disable2fa(request, Response) {
+    async disable2fa(request, response) {
         const user = await this.playerService.disable2fa(request.user.playerId);
-        express_1.response.set({
+        response.set({
             'Access-Control-Allow-Origin': 'http://localhost:3000'
         });
-        return Response.send({
+        return response.send({
             "message": "2FA disabled"
         });
     }
@@ -58,7 +60,14 @@ let PlayerController = class PlayerController {
         response.status(200).send(profile);
     }
     async upload(request, response, file) {
-        console.log(file);
+        console.log("----------------- updateAvatar -----------------", request.user.playerId);
+        await this.playerService.uploadAvatar(request.user.playerId, file);
+        response.set({
+            'Access-Control-Allow-Origin': 'http://localhost:3000'
+        });
+        response.status(200).send({
+            message: "Avatar updated"
+        });
     }
     async getProfile(nickname, request, response) {
         const profile = await this.playerService.findPlayerByNickname(nickname['id']);
@@ -705,7 +714,16 @@ __decorate([
 ], PlayerController.prototype, "updateNickname", null);
 __decorate([
     (0, common_1.Post)('update/avatar'),
-    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.diskStorage)({
+            destination: './uploads',
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                const ext = (0, path_1.extname)(file.originalname);
+                cb(null, uniqueSuffix + ext);
+            }
+        }),
+    })),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Res)()),
     __param(2, (0, common_2.UploadedFile)(new common_1.ParseFilePipe({

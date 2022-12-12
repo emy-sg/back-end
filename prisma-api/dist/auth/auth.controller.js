@@ -42,7 +42,7 @@ let AuthController = class AuthController {
         if (!user) {
             throw new common_1.UnauthorizedException('User not found');
         }
-        const otpauth_url = await this.authService.generate2faSecret(user.id);
+        const otpauth_url = await this.authService.generateQrCode(user.id);
         console.log("otpauth_url", otpauth_url);
         return res.status(200).send(otpauth_url);
     }
