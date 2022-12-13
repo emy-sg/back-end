@@ -151,12 +151,14 @@ let PlayerService = class PlayerService {
     }
     async getRoomById(userId, room_id) {
         const rooms_exist = await this.findRoomById(room_id);
+        console.log("rooms_exist", rooms_exist);
         const is_member = await this.getPermissions(userId, room_id);
         if (!is_member) {
             throw new common_1.UnauthorizedException("You are not a member of this room");
         }
-        if (is_member && is_member.is_banned === true)
-            throw new common_1.UnauthorizedException("You are banned from this room");
+        console.log("is_member", is_member);
+        if (is_member && rooms_exist.is_dm === false && is_member.is_banned === true)
+            throw new common_1.UnauthorizedException("Get Room by id : You are banned from this room");
         const room = await this.prisma.chatRoom.findFirst({
             where: {
                 id: room_id,
@@ -231,6 +233,14 @@ let PlayerService = class PlayerService {
                     {
                         is_protected: true,
                     },
+                    {
+                        is_dm: true,
+                        all_members: {
+                            some: {
+                                playerId: userId,
+                            }
+                        },
+                    }
                 ],
             },
             include: {
@@ -1072,16 +1082,47 @@ let PlayerService = class PlayerService {
         return permission;
     }
     async joinDM(userId, room_id) {
-        console.log("room_id ===>", room_id);
-        const room = await this.prisma.chatRoom.findUnique({
+        const user = await this.findPlayerById(userId);
+        let DM = null;
+        DM = await this.getRoomBetweenTwoPlayers(userId, user.nickname);
+        if (DM === null) {
+            const friendship = await this.getFriendshipStatus(userId, user.nickname);
+            if (!friendship) {
+                DM = await this.createDMRoom(userId, user.nickname);
+            }
+            else if (friendship.status === 'Pending') {
+                DM = await this.createDMRoom(userId, user.nickname);
+            }
+            else if (friendship.status === 'Block') {
+                throw new common_1.NotFoundException("You can not send a message to this player");
+            }
+        }
+        const room = await this.prisma.chatRoom.findFirst({
             where: {
                 id: room_id,
-            }
+            },
+            select: {
+                name: true,
+                is_dm: true,
+                is_public: true,
+                is_private: true,
+                is_protected: true,
+                all_members: {
+                    select: {
+                        player: {
+                            select: {
+                                nickname: true,
+                                id: true,
+                            }
+                        },
+                    },
+                },
+            },
         });
         if (room && room.is_dm === false) {
             throw new common_1.NotFoundException("This is not a DM room");
         }
-        return await this.getRoomById(userId, room.id);
+        return room;
     }
     async joinRoom(userId, room_id) {
         const room = await this.prisma.chatRoom.findUnique({
@@ -1091,6 +1132,7 @@ let PlayerService = class PlayerService {
             throw new common_1.NotFoundException("Room not found");
         }
         if (room.is_dm === true) {
+            throw new common_1.NotFoundException("Cannot join a DM");
         }
         if (room.is_protected === true) {
             throw new common_1.NotFoundException("You can't join a protected room");
